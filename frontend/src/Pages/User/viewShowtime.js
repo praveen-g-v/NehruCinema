@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import MovieList from "./MovieList";
+import Search from "../User/Search";
 
-const viewShowtime = () => {
+const ViewShowtime = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -55,4 +56,4 @@ const viewShowtime = () => {
   );
 };
 
-export default viewShowtime;
+export default ViewShowtime;

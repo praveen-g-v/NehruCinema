@@ -10,6 +10,7 @@ import { ThemeProvider } from "./hooks/Theme";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Register from "./Pages/LoginAndRegistration/Register";
 import Home from "./Pages/Home/Home";
+import ViewShowtime from "./Pages/User/viewShowtime";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -22,7 +23,7 @@ root.render(
             <Route exact path="/register" element={<Register />} />
             <Route exact path="/" element={<Home />}>
               <Route path="addmovie" element={<AddMovie />} />
-              <Route path="viewmovie" element={<viewShowtime />} />
+              <Route path="viewmovie" element={<ViewShowtime />} />
             </Route>
           </Routes>
 
