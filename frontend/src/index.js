@@ -5,7 +5,6 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Login from "./Pages/LoginAndRegistration/Login";
 import AddMovie from "./Pages/Admin/addMovies";
-import Header from "./Pages/Header/Header";
 import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./hooks/Theme";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -23,6 +22,7 @@ root.render(
             <Route exact path="/register" element={<Register />} />
             <Route exact path="/" element={<Home />}>
               <Route path="addmovie" element={<AddMovie />} />
+              <Route path="viewmovie" element={<viewShowtime />} />
             </Route>
           </Routes>
 
