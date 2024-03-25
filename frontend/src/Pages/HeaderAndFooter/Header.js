@@ -18,7 +18,7 @@ const Header = () => {
         </a>
         <h1 className="text-xl font-bold">Nehru Cinemas</h1>
       </div>
-      <nav className="md hidden flex space-x-4">
+      <nav className="md:block hidden flex space-x-4">
         {" "}
         {/* Visible on medium and larger screens */}
         <Link
@@ -54,6 +54,21 @@ const Header = () => {
             />
           </svg>
         ) : (
+          // <svg
+          //   xmlns="http://www.w3.org/2000/svg"
+          //   className="h-6 w-6"
+          //   fill="none"
+          //   viewBox="0 0 24 24"
+          //   stroke="currentColor"
+          // >
+          //   <path
+          //     strokeLinecap="round"
+          //     strokeLinejoin="round"
+          //     strokeWidth="2"
+          //     d="M4 6h16v2H4zm0 7h16v2H4z"
+          //   />
+          // </svg>
+
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
@@ -65,7 +80,7 @@ const Header = () => {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M4 6h16v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"
+              d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z"
             />
           </svg>
         )}

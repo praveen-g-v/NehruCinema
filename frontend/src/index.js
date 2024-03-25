@@ -11,6 +11,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Register from "./Pages/LoginAndRegistration/Register";
 import Home from "./Pages/Home/Home";
 import ViewShowtime from "./Pages/User/viewShowtime";
+import MovieCard from "./Pages/User/MovieCard";
+import Movie from "./Pages/User/Movie";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
