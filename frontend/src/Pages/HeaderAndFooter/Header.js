@@ -9,7 +9,7 @@ const Header = () => {
     setIsOpen(!isOpen);
   };
   return (
-    <header className="header bg-gray-800 text-white p-4 flex justify-between items-center fixed top-0 left-0 w-full z-50">
+    <header className="header  bg-slate-700 text-white p-1 flex justify-between items-center fixed top-0 left-0 w-full z-50">
       {" "}
       {/* Fixed positioning */}
       <div className="flex items-center">
@@ -18,7 +18,7 @@ const Header = () => {
         </a>
         <h1 className="text-xl font-bold">Nehru Cinemas</h1>
       </div>
-      <nav className="md:block hidden flex space-x-4">
+      <nav className="md:block hidden  space-x-4">
         {" "}
         {/* Visible on medium and larger screens */}
         <Link

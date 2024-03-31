@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const UserRoute = require("./routes/userRoutes");
+const MovieRoute = require("./routes/movieRoutes");
 const corsOptions = {
   origin: "http://localhost:3000",
   credentials: true, //access-control-allow-credentials:true
@@ -19,6 +20,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use("/api", UserRoute);
+app.use("/api/movie", MovieRoute);
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {

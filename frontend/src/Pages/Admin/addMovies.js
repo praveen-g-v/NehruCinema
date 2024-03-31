@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "../../api/axios";
+import Loader from "../../hooks/Loader";
 
-const AddMovie = ({ onSubmit }) => {
+const AddMovie = ({ isLoading, setIsLoading }) => {
   const [title, setTitle] = useState("");
   const [genre, setGenre] = useState("");
   const [duration, setDuration] = useState("");
@@ -9,8 +11,104 @@ const AddMovie = ({ onSubmit }) => {
   const [crew, setCrew] = useState([]);
   const [ageRestriction, setAgeRestriction] = useState("");
   const [poster, setPoster] = useState(null);
-  const [trailer, setTrailer] = useState(null);
+  const [trailer, setTrailer] = useState("");
+  const valiadateData = () => {
+    console.log("Validating Data");
+    if (title.length > 0) {
+      if (genre.length > 0) {
+        if (synopsis.length > 20) {
+          if (cast.length > 0) {
+            cast.forEach((val) => {
+              if (val.length < 0) {
+                alert("Please enter valid cast");
+                return false;
+              }
+            });
+            if (crew.length > 0) {
+              crew.forEach((val) => {
+                if (val.length < 0) {
+                  alert("Please enter valid crew");
+                  return false;
+                }
+              });
+              if (ageRestriction.length > 0) {
+                if (poster != null) {
+                  var regExp =
+                    /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+                  var newTrailer = trailer.match(regExp);
+                  if (newTrailer) {
+                    if (newTrailer.length >= 7) {
+                      return true;
+                    } else {
+                      alert("Enter Valid Youtube URL");
+                    }
+                  } else {
+                    alert("Enter Valid Youtube URL");
+                  }
+                  console.log(poster);
+                } else {
+                  alert("Please Upload the poster");
+                }
+              } else {
+                alert("Please choice age restriction");
+              }
+            } else {
+              alert("Please add a crew");
+            }
+          } else {
+            alert("Please add a cast");
+          }
+        } else {
+          alert("Please enter a synopsis");
+        }
+      } else {
+        alert("Please enter a genre");
+      }
+    } else {
+      alert("Please enter a title");
+    }
+    return false;
+  };
+  const onSubmit = async (newmovie) => {
+    console.log(newmovie);
+    // console.log(valiadateData());
+    if (valiadateData()) {
+      setIsLoading(true);
+      var regExp =
+        /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+      var newTrailer = trailer.match(regExp);
+      let tempTrailer = newTrailer[7];
+      if (newTrailer) {
+        tempTrailer = newTrailer[7];
+      }
+      const formData = new FormData();
+      formData.append("poster", poster);
+      formData.append("title", title);
+      formData.append("genre", genre);
+      formData.append("duration", duration);
+      formData.append("synopsis", synopsis);
+      formData.append("cast", cast);
+      formData.append("crew", crew);
+      formData.append("ageRestriction", ageRestriction);
+      formData.append("trailer", tempTrailer);
 
+      try {
+        const response = await axios.post("/movie/addmovie", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        console.log(response);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        console.log("Not setting loadinf");
+        setIsLoading(false);
+        // Clear selected image after upload
+      }
+    }
+    setIsLoading(false);
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     const newMovie = {
@@ -26,15 +124,15 @@ const AddMovie = ({ onSubmit }) => {
     };
     onSubmit(newMovie); // Call the provided onSubmit function with new movie data
     // Clear the form after submission
-    setTitle("");
-    setGenre("");
-    setDuration("");
-    setSynopsis("");
-    setCast([]);
-    setCrew([]);
-    setAgeRestriction("");
-    setPoster(null);
-    setTrailer(null);
+    // setTitle("");
+    // setGenre("");
+    // setDuration("");
+    // setSynopsis("");
+    // setCast([]);
+    // setCrew([]);
+    // setAgeRestriction("");
+    // setPoster(null);
+    // setTrailer("");
   };
 
   const handleFileUpload = (event) => {
@@ -49,9 +147,10 @@ const AddMovie = ({ onSubmit }) => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className={` flex-6 container  mx-auto p-4  `}>
+      {isLoading ? <Loader isLoading={isLoading} /> : null}
       <h1 className="text-xl font-bold mb-4">Add New Movie</h1>
-      <form onSubmit={handleSubmit}>
+      <form>
         <div className="mb-4">
           <label className="block text-gray-700 mb-2" htmlFor="title">
             Title
@@ -123,7 +222,7 @@ const AddMovie = ({ onSubmit }) => {
                 {index > 0 && (
                   <button
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-2 rounded focus:outline-none focus:shadow-outline"
-                    onClick={() => setCast(cast.filter((_, i) => i !== index))}
+                    onClick={(e) => setCast(cast.filter((_, i) => i !== index))}
                   >
                     Remove
                   </button>
@@ -141,6 +240,35 @@ const AddMovie = ({ onSubmit }) => {
         <div className="mb-4">
           <label className="block text-gray-700 mb-2 font-bold">Crew</label>
           {/* Similar logic can be implemented for Crew */}
+          {crew.map((actor, index) => (
+            <div key={index} className="flex items-center mb-2">
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
+                type="text"
+                placeholder={`Actor ${index + 1}`}
+                value={actor}
+                onChange={(e) => {
+                  const newCrew = [...crew];
+                  newCrew[index] = e.target.value;
+                  setCrew(newCrew);
+                }}
+              />
+              {index > 0 && (
+                <button
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-2 rounded focus:outline-none focus:shadow-outline"
+                  onClick={() => setCrew(crew.filter((_, i) => i !== index))}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            className="inline-block px-6 py-2.5 bg-blue-600 text-white font-bold rounded shadow-sm sm:mt-0 sm:ml-2 mt-4"
+            onClick={() => setCrew([...crew, ""])}
+          >
+            Add Crew
+          </button>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 mb-2" htmlFor="ageRestriction">
@@ -172,18 +300,20 @@ const AddMovie = ({ onSubmit }) => {
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 mb-2" htmlFor="trailer">
-            Movie Trailer
+            Movie Trailer (Youtube Link only)
           </label>
           <input
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="trailer"
-            type="file"
-            onChange={handleFileUpload}
+            type="text"
+            value={trailer}
+            onChange={(e) => setTrailer(e.target.value)}
+            required
           />
         </div>
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          type="submit"
+          onClick={handleSubmit}
         >
           Add Movie
         </button>

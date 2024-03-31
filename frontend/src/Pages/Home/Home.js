@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { Outlet } from "react-router-dom";
 import Footer from "../HeaderAndFooter/Footer";
 import Header from "../HeaderAndFooter/Header";
 
-const Home = () => {
+const Home = ({ isLoading }) => {
+  useEffect(() => {
+    var root = document.getElementById("root");
+    root.style = isLoading ? "overflow:hidden" : "";
+    // console.log(root);
+  }, [isLoading]);
   return (
     <>
       <Header />
