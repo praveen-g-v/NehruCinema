@@ -13,6 +13,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ViewShowtime from "./Pages/User/viewShowtime";
 import PlayVideo from "./Pages/Admin/PlayVideo";
 import ViewMovie from "./Pages/Admin/viewMovie";
+import CreateShowtime from "./Pages/Admin/ShowTiming";
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   return (
@@ -67,7 +68,15 @@ function App() {
                     />
                   }
                 />
-
+                <Route
+                  path="createshowtime"
+                  element={
+                    <CreateShowtime
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
                 <Route
                   path="viewMovie"
                   element={

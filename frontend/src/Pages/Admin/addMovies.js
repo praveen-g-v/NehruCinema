@@ -93,17 +93,31 @@ const AddMovie = ({ isLoading, setIsLoading }) => {
       formData.append("trailer", tempTrailer);
 
       try {
-        const response = await axios.post("/movie/addmovie", formData, {
+        const res = await axios.post("/movie/addmovie", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-        console.log(response);
+        if (res.status === 200) {
+          alert("Updated Successfully");
+        } else if (res.status === 304) {
+          alert(res.data.message);
+        }
+        // console.log(res);
       } catch (error) {
         console.log(error);
       } finally {
         console.log("Not setting loadinf");
         setIsLoading(false);
+        setTitle("");
+        setGenre("");
+        setDuration("");
+        setSynopsis("");
+        setCast([]);
+        setCrew([]);
+        setAgeRestriction("");
+        setPoster(null);
+        setTrailer("");
         // Clear selected image after upload
       }
     }

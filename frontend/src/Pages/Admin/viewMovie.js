@@ -23,8 +23,11 @@ const ViewMovie = () => {
         </div>
         <div className="flex-1 flex-grow min-h-80 md:justify-start">
           <h1 className="text-3xl font-bold mb-4">{movie.title}</h1>
-          <p className="text-gray-700 mb-4">{movie.genre}</p>
-          <p className="text-gray-700 mb-4">{movie.duration}</p>
+          <div>
+            <p className="text-gray-700 mb-4">{movie.genre}</p>
+            <p className="text-gray-700 mb-4">{movie.duration}</p>
+          </div>
+
           <p className="text-base leading-loose mb-4">{movie.synopsis}</p>
           <button className="bg-red-500 hover:bg-red-700  text-white font-bold py-2 px-4 rounded shadow-md">
             Book Tickets
