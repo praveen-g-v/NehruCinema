@@ -117,6 +117,14 @@ const addShowTime = async (req, res) => {
     if (date.length > 0) {
       if (time.length > 0) {
         if (availableSeats > 0) {
+          let currentDate = new Date();
+          let showDate = new Date(date);
+          if (currentDate <= showDate) {
+          } else {
+            return res
+              .status(304)
+              .send({ message: "Show time cannot be past dates" });
+          }
         } else {
           return res.status(304).send({
             message: "available seat is less than 0",
@@ -153,6 +161,28 @@ const addShowTime = async (req, res) => {
     console.log(error);
     res.status(400).send({ message: error.message });
   }
+};
+
+const getShowTime = async (req, res) => {
+  const showTimes = await Showtime({});
+  let response = [];
+  showTimes.forEach((val) => {
+    response = [
+      ...response,
+      {
+        movieId: val.movieId,
+        date: val.date,
+        time: val.time,
+        theatreHall: val.theatreHall,
+        availableSeats: val.availableSeats,
+        id: val._id,
+      },
+    ];
+  });
+  if (response.length > 0) {
+    return res.status(200).send(response);
+  }
+  return res.status(300).send({ message: "Unable to find ShowTimes" });
 };
 
 exports.addMovie = addMovie;
