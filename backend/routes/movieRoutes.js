@@ -6,7 +6,9 @@ const multer = require("multer");
 
 const upload = multer(); // Optional: Set temporary storage directory
 
-router.post("/addmovie", upload.single("poster"), MovieController.addMovie);
 router.get("/getmovies", MovieController.getMovies);
+router.get("/getshowtime", MovieController.getShowTime);
+
+router.post("/addmovie", upload.single("poster"), MovieController.addMovie);
 router.post("/addshowtime", MovieController.addShowTime);
 module.exports = router;

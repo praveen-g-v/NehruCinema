@@ -188,3 +188,4 @@ const getShowTime = async (req, res) => {
 exports.addMovie = addMovie;
 exports.getMovies = getMovies;
 exports.addShowTime = addShowTime;
+exports.getShowTime = getShowTime;

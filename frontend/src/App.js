@@ -14,6 +14,7 @@ import ViewShowtime from "./Pages/User/viewShowtime";
 import PlayVideo from "./Pages/Admin/PlayVideo";
 import ViewMovie from "./Pages/Admin/viewMovie";
 import CreateShowtime from "./Pages/Admin/ShowTiming";
+import TheatreHall from "./Pages/Admin/TheatreHall";
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   return (
@@ -72,6 +73,15 @@ function App() {
                   path="createshowtime"
                   element={
                     <CreateShowtime
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="theatrehall"
+                  element={
+                    <TheatreHall
                       isLoading={isLoading}
                       setIsLoading={setIsLoading}
                     />
