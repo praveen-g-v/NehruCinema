@@ -4,6 +4,8 @@ import logo from "../../assets/NehruCimenaLogo.png";
 import { Link } from "react-router-dom";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import axios from "../../api/axios";
+import { useNavigate } from "react-router-dom";
+import Loader from "../../hooks/Loader";
 function ThemeToggle() {
   const { theme, toggleTheme } = useContext(ThemeContext); // Access theme if using Context
 
@@ -13,16 +15,19 @@ function ThemeToggle() {
     </button>
   );
 }
-function Login() {
+function Login({ isLoading, setIsLoading }) {
   // const { theme } = useContext(ThemeContext);
   // const axios = useAxiosPrivate();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const { theme, toggleTheme } = useContext(ThemeContext); // Access theme if using Context
   useEffect(() => {
     console.log(theme);
   }, [theme]);
   const submit = async (e) => {
+    setIsLoading(true);
     e.preventDefault();
     try {
       const res = await axios.get("/login", {
@@ -31,15 +36,28 @@ function Login() {
           password,
         },
       });
+      if (res.status == 200) {
+        setIsLoading(false);
+        navigate(-1);
+      }
+      // if(res.status==)
       console.log(res);
     } catch (err) {
+      if (err.response.status === 401) {
+        alert(err.response.data.message);
+        setEmail("");
+        setPassword("");
+        setIsLoading(false);
+      }
+
       console.log(err);
     }
   };
   return (
     <>
+      {isLoading ? <Loader isLoading={isLoading} /> : null}
       <div
-        className={`flex h-full min-h-full flex-col justify-center px-6 py-12 lg:px-8 ${
+        className={`w-screen flex h-full min-h-full flex-col justify-center px-6 py-12 lg:px-8 ${
           theme === "dark" ? "bg-gray-900" : "bg-gray-100"
         }`}
       >
@@ -81,6 +99,7 @@ function Login() {
                   type="email"
                   autocomplete="email"
                   required
+                  value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                   }}
@@ -112,6 +131,7 @@ function Login() {
                 <input
                   id="password"
                   name="password"
+                  value={password}
                   type="password"
                   autocomplete="current-password"
                   required

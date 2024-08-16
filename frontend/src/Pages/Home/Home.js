@@ -14,6 +14,7 @@ const Home = ({ isLoading }) => {
     <>
       <Header />
       <Outlet />
+      <div className="p-2"></div>
       <Footer />
     </>
   );

@@ -11,7 +11,7 @@ const PlayVideo = () => {
     },
   };
 
-  return <YouTube videoId="VGUItmV-q-4" opts={opts} />;
+  return <YouTube videoId="yyMfzi6WRnY" opts={opts} />;
 
   //   const embeded = `<iframe width="560" height="315" src="https://www.youtube.com/embed/Qqn1iGB5Rhk?si=YzMHFf6vBuyt1TOj" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
   //   useEffect(() => {

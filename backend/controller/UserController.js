@@ -47,6 +47,8 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
     user = user[0];
+    // console.log(user);
+    console.log(await bcrypt.hash(password, 10));
     const isMatch = await bcrypt.compare(password, user.password);
     console.log(isMatch);
     if (!isMatch) {
@@ -68,6 +70,36 @@ const login = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+const hasLogged = (req, res, next) => {
+  const cookies = req.cookies;
+  // console.log("Cookies:  ", cookies);
+  if (!cookies) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  } else {
+    const token = cookies.jwt;
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      // console.log(decoded);
+      {
+        if (err) {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+        const foundUser = await User.findById(decoded.userId);
+        // console.log(foundUser);
+        let user = {
+          name: foundUser.name,
+          role: foundUser.role,
+          isLogged: true,
+        };
+        if (!foundUser) {
+          return res.status(401).json({ isLogged: false });
+        }
+        return res.status(200).json({ user });
+      }
+    });
+  }
+};
 
 const logout = (req, res) => {
   const cookies = req.cookies;
@@ -81,3 +113,4 @@ const logout = (req, res) => {
 exports.register = register;
 exports.login = login;
 exports.logout = logout;
+exports.hasLogged = hasLogged;

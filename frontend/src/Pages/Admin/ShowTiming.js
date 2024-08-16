@@ -7,6 +7,7 @@ const CreateShowtime = () => {
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState("00:00");
   const [theatreHall, setTheatreHall] = useState("");
+  const [halls, setHalls] = useState([]);
   const [availableSeats, setAvailableSeats] = useState(0);
 
   // Fetch movie data on component mount
@@ -15,7 +16,10 @@ const CreateShowtime = () => {
       try {
         const response = await axios.get("/movie/getmovies"); // Assuming endpoint for movies
         setMovies(response.data);
-        console.log(response.data);
+        const resp = await axios.get("/movie/gettheatrehall");
+        setHalls(resp.data);
+        // setAvailableSeats(resp.data.totalSeats);
+        console.log(resp.data);
       } catch (error) {
         console.error(error);
       }
@@ -24,21 +28,57 @@ const CreateShowtime = () => {
   }, []);
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    let checkTime = time.split(":");
 
-    try {
-      const response = await axios.post("/movie/addshowtime", {
-        movieId: selectedMovie,
-        date,
-        time,
-        theatreHall,
-        availableSeats,
-      });
-      console.log("Showtime created successfully:", response.data);
-      // Clear form or handle success state here
-    } catch (error) {
-      console.error(error);
-      // Handle errors appropriately
+    console.log(time.split(":"));
+    console.log(
+      (new Date().getHours() + ":" + new Date().getMinutes()).split(":")
+    );
+    event.preventDefault();
+    if (selectedMovie === "") {
+      alert("Please select a movie to continue");
+    } else if (theatreHall === "") {
+      alert("Please select a Thetre Hall to continue");
+    } else if (
+      new Date(date).getFullYear() < new Date().getFullYear() ||
+      new Date(date).getMonth() < new Date().getMonth() ||
+      new Date(date).getDay() < new Date().getDay()
+    ) {
+      alert("Past date cannot be selected");
+    } else if (checkTime[0] < new Date().getHours()) {
+      if (checkTime[1] < new Date().getMinutes()) {
+        alert("Past time cannot be selected");
+      } else {
+        alert("Past Time cannot be selected");
+      }
+    } else {
+      try {
+        const response = await axios.post("/movie/addshowtime", {
+          movieId: selectedMovie,
+          date,
+          time,
+          theatreHall,
+          availableSeats,
+        });
+        alert("Showtime created successfully");
+        setSelectedMovie("");
+        setDate(new Date());
+        setTime("00:00");
+        setAvailableSeats("");
+        setTheatreHall("");
+
+        console.log("Showtime created successfully:", response.data);
+        // Clear form or handle success state here
+      } catch (error) {
+        console.error(error);
+        alert("Error");
+        setSelectedMovie("");
+        setDate(new Date());
+        setTime("00:00");
+        setAvailableSeats("");
+        setTheatreHall("");
+        // Handle errors appropriately
+      }
     }
   };
 
@@ -75,7 +115,10 @@ const CreateShowtime = () => {
             name="date"
             className="w-full rounded-md border border-gray-300 py-2 px-3 text-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             value={date.toISOString().split("T")[0]} // Format date for input
-            onChange={(e) => setDate(new Date(e.target.value))}
+            onChange={(e) => {
+              console.log(e.target.value);
+              setDate(new Date(e.target.value));
+            }}
           />
         </div>
         <div className="mb-4">
@@ -92,19 +135,30 @@ const CreateShowtime = () => {
           />
         </div>
         <div className="mb-4">
-          <label
-            htmlFor="theatreHall"
-            className="block text-gray-700 font-bold mb-2"
-          >
+          <label htmlFor="movie" className="block text-gray-700 font-bold mb-2">
             Theatre Hall:
           </label>
-          <input
-            type="text"
-            id="theatreHall"
-            name="theatreHall"
-            onChange={(e) => setTheatreHall(e.target.value)}
-            className="w-full rounded-md border border-gray-30"
-          />
+          <select
+            id="hall"
+            name="hall"
+            className="w-full rounded-md border border-gray-300 py-2 px-3 text-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            value={theatreHall}
+            onChange={(e) => {
+              halls.forEach((val) => {
+                if (val.id === e.target.value) {
+                  setAvailableSeats(val.totalSeats);
+                }
+              });
+              setTheatreHall(e.target.value);
+            }}
+          >
+            <option value="">-- Select Hall --</option>
+            {halls.map((val) => (
+              <option key={val.id} value={val.id}>
+                {val.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="mb-4">
           <label
@@ -119,6 +173,7 @@ const CreateShowtime = () => {
             name="availableSeats"
             className="w-full rounded-md border border-gray-300 py-2 px-3 text-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             value={availableSeats}
+            disabled={true}
             onChange={(e) => setAvailableSeats(Number(e.target.value))}
           />
         </div>

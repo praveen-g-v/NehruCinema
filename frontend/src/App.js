@@ -6,7 +6,6 @@ import Register from "./Pages/LoginAndRegistration/Register";
 import Home from "./Pages/Home/Home";
 import AddMovie from "./Pages/Admin/addMovies";
 import AddImage from "./Pages/Admin/AddImage";
-
 import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./hooks/Theme";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -15,6 +14,10 @@ import PlayVideo from "./Pages/Admin/PlayVideo";
 import ViewMovie from "./Pages/Admin/viewMovie";
 import CreateShowtime from "./Pages/Admin/ShowTiming";
 import TheatreHall from "./Pages/Admin/TheatreHall";
+import ShowsAiring from "./Pages/Main Page/ShowAiring";
+import BookingPage from "./Pages/BookingPage/BookingPage";
+import BookShow from "./Pages/BookingPage/BookShow";
+import TicketBooked from "./Pages/BookingPage/TicketBooked";
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   return (
@@ -23,8 +26,20 @@ function App() {
         <ThemeProvider>
           <BrowserRouter>
             <Routes>
-              <Route exact path="/login" element={<Login />} />
-              <Route exact path="/register" element={<Register />} />
+              <Route
+                exact
+                path="/login"
+                element={
+                  <Login isLoading={isLoading} setIsLoading={setIsLoading} />
+                }
+              />
+              <Route
+                exact
+                path="/register"
+                element={
+                  <Register isLoading={isLoading} setIsLoading={setIsLoading} />
+                }
+              />
               <Route
                 exact
                 path="/"
@@ -32,6 +47,33 @@ function App() {
                   <Home isLoading={isLoading} setIsLoading={setIsLoading} />
                 }
               >
+                <Route
+                  path="shows"
+                  element={
+                    <ShowsAiring
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="bookedTicket"
+                  element={
+                    <TicketBooked
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="bookshow"
+                  element={
+                    <BookShow
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
                 <Route
                   path="addmovie"
                   element={
@@ -64,6 +106,15 @@ function App() {
                   path="playVideo"
                   element={
                     <PlayVideo
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="showDetails"
+                  element={
+                    <BookingPage
                       isLoading={isLoading}
                       setIsLoading={setIsLoading}
                     />

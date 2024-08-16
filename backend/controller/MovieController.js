@@ -2,6 +2,10 @@ const AWS = require("aws-sdk");
 const multer = require("multer");
 const Movie = require("../model/movieModel");
 const Showtime = require("../model/ShowTimeModel");
+const TheatreHall = require("../model/TheatreHallModel");
+const { default: mongoose } = require("mongoose");
+const BookingInfo = require("../model/BookingInfo");
+const UserBookingInfo = require("../model/UserBookingInfo");
 
 const addMovie = async (req, res) => {
   const valiadateData = () => {
@@ -111,15 +115,141 @@ const getMovies = async (req, res) => {
   }
 };
 
+const getTomorrowShows = async (req, res) => {
+  try {
+    var moviesList = [];
+    let finalData = [];
+    var noMovies = true;
+    // console.log("Shows");
+    const Movies = await Showtime.find({});
+    const movieData = await Movie.find({});
+    // console.log(Movies);
+    if (Movies.length > 0 && movieData.length > 0) {
+      // console.log;
+
+      const currDate = new Date();
+      Movies.forEach(async (val) => {
+        // console.log(val);
+        let movieDate = new Date(val.date);
+        if (
+          currDate.getFullYear() === movieDate.getFullYear() &&
+          currDate.getMonth() === movieDate.getMonth() &&
+          currDate.getDate() === movieDate.getDate()
+        ) {
+          movieData.forEach((element) => {
+            // console.log(element._id === val.movieId);
+            // console.log(element._id + "  " + val.movieId);
+            if (element._id.toString() == val.movieId.toString()) {
+              noMovies = false;
+              moviesList = [
+                ...moviesList,
+                {
+                  id: val._id,
+                  movieId: val.movieId,
+                  title: element.title,
+                  genre: element.genre,
+                  duration: element.duration,
+                  synopsis: element.synopsis,
+                  cast: element.cast,
+                  crew: element.crew,
+                  poster: element.poster,
+                  date: val.date,
+                  theatreHall: val.theatreHall,
+                },
+              ];
+            }
+          });
+        }
+        // console.log(moviesList);
+      });
+      // console.log(finalData);
+      if (moviesList.length > 0) {
+        // console.log(moviesList);
+        return res.status(200).send(moviesList);
+      }
+    }
+    if (noMovies) {
+      return res.status(404).send({ message: "No movies are Airing Today" });
+    }
+  } catch (e) {
+    return res.status(500).send({
+      message: "Encounterned issue please connect with Adminsitartor",
+    });
+  }
+};
+
+const getTodayShows = async (req, res) => {
+  try {
+    var moviesList = [];
+    let finalData = [];
+    var noMovies = true;
+    // console.log("Shows");
+    const Movies = await Showtime.find({});
+    const movieData = await Movie.find({});
+    // console.log(Movies);
+    if (Movies.length > 0 && movieData.length > 0) {
+      // console.log;
+
+      const currDate = new Date();
+      Movies.forEach(async (val) => {
+        let movieDate = new Date(val.date);
+        if (
+          currDate.getFullYear() === movieDate.getFullYear() &&
+          currDate.getMonth() === movieDate.getMonth() &&
+          currDate.getDate() === movieDate.getDate()
+        ) {
+          movieData.forEach((element) => {
+            // console.log(element._id === val.movieId);
+            // console.log(element._id + "  " + val.movieId);
+            if (element._id.toString() == val.movieId.toString()) {
+              noMovies = false;
+              moviesList = [
+                ...moviesList,
+                {
+                  id: val._id,
+                  movieId: val.movieId,
+                  title: element.title,
+                  genre: element.genre,
+                  duration: element.duration,
+                  synopsis: element.synopsis,
+                  cast: element.cast,
+                  crew: element.crew,
+                  poster: element.poster,
+                  date: val.date,
+                },
+              ];
+            }
+          });
+        }
+        // console.log(moviesList);
+      });
+      // console.log(finalData);
+      if (moviesList.length > 0) {
+        // console.log(moviesList);
+        return res.status(200).send(moviesList);
+      }
+    }
+    if (noMovies) {
+      return res.status(404).send({ message: "No movies are Airing Today" });
+    }
+  } catch (e) {
+    return res.status(500).send({
+      message: "Encounterned issue please connect with Adminsitartor",
+    });
+  }
+};
+
 const addShowTime = async (req, res) => {
+  console.log(req.body);
   let { movieId, date, time, theatreHall, availableSeats } = req.body;
+
   if (movieId.length > 0) {
     if (date.length > 0) {
       if (time.length > 0) {
         if (availableSeats > 0) {
           let currentDate = new Date();
           let showDate = new Date(date);
-          if (currentDate <= showDate) {
+          if (currentDate >= showDate) {
           } else {
             return res
               .status(304)
@@ -146,6 +276,24 @@ const addShowTime = async (req, res) => {
     });
   }
   date = new Date(date);
+  const theatre = await TheatreHall.findById(req.body.theatreHall);
+  var seatLayout = theatre.layout.map((val) => {
+    return val.map((item) => {
+      let newItem = { ...item };
+      if (item.attribute == "seats") {
+        newItem.status = "NotBooked";
+        newItem.eligible = true;
+        newItem.seatBooked = false;
+      } else {
+        newItem.status = "NotBookable";
+        newItem.eligible = false;
+        newItem.seatBooked = false;
+      }
+      return newItem;
+    });
+  });
+  console.log(seatLayout);
+  console.log("Got awway from error");
   try {
     const newShowtime = new Showtime({
       movieId,
@@ -154,8 +302,22 @@ const addShowTime = async (req, res) => {
       theatreHall,
       availableSeats,
     });
-
+    const bookinfInfo = new BookingInfo({
+      date: date,
+      time: time,
+      theatreHall: theatreHall,
+      bookedSeats: seatLayout,
+      totalBookedSeats: 0,
+      totalSeats: availableSeats,
+    });
+    const session = await mongoose.startSession();
+    session.startTransaction();
     await newShowtime.save();
+    console.log(newShowtime);
+    bookinfInfo.showTimeId = newShowtime._id;
+    await bookinfInfo.save();
+    console.log(bookinfInfo);
+    await session.commitTransaction();
     res.status(200).send({ message: "Showtime created successfully" });
   } catch (error) {
     console.log(error);
@@ -163,6 +325,40 @@ const addShowTime = async (req, res) => {
   }
 };
 
+const getBookingInfo = async (req, res) => {
+  console.log(req.query);
+  const BookingInfoData = await BookingInfo.findById(req.query.bookingInfoId);
+  if (BookingInfoData != undefined && BookingInfoData != null) {
+    const tempData = {
+      bookingInfoId: req.query.bookingInfoId,
+      showTimeId: req.query.showTimeId,
+      bookedSeats: BookingInfoData.bookedSeats,
+      date: BookingInfoData.date,
+      time: BookingInfoData.time,
+      totalSeats: BookingInfoData.totalSeats,
+      totalBookedSeats: BookingInfoData.totalBookedSeats,
+    };
+    return res.status(200).send({ ...tempData });
+  }
+  return res.status(300).send({ message: "Unable to find ShowTimes" });
+};
+
+const getAvailablSeats = async (req, res) => {
+  const reqShowTimeId = req.query.bookingId;
+  const BookingInfoData = await BookingInfo.find({ showTimeId: reqShowTimeId });
+  console.log(BookingInfoData);
+  if (BookingInfoData.length > 0) {
+    let temp = BookingInfoData[0];
+    let currData = {
+      BookingInfoId: temp._id,
+      showTimeId: reqShowTimeId,
+      totalSeats: temp.totalSeats,
+      availableSeats: temp.totalSeats - temp.totalBookedSeats,
+    };
+    return res.status(200).send({ ...currData });
+  }
+  return res.status(300).send({ message: "Unable to Retrive Seats" });
+};
 const getShowTime = async (req, res) => {
   const showTimes = await Showtime({});
   let response = [];
@@ -185,7 +381,174 @@ const getShowTime = async (req, res) => {
   return res.status(300).send({ message: "Unable to find ShowTimes" });
 };
 
+const getMyBookings = async (req, res) => {
+  console.log(req.body);
+  try {
+    const userId = req.body.user.userId;
+    const userBookingInfoData = await UserBookingInfo.find({ userId: userId });
+    if (userBookingInfoData.length > 0) {
+      console.log(userBookingInfoData);
+      let currBookings = [];
+      for (let i = 0; i < userBookingInfoData.length; i++) {
+        let showTimeData = await Showtime.findById(
+          userBookingInfoData[i].showTimeId
+        );
+        if (showTimeData != undefined && showTimeData != null) {
+          console.log(showTimeData);
+          let movieData = await Movie.findById(showTimeData.movieId);
+          let theatreHallDetail = await TheatreHall.findById(
+            showTimeData.theatreHall
+          );
+          if (
+            movieData != undefined &&
+            movieData != null &&
+            theatreHallDetail != undefined &&
+            theatreHallDetail != null
+          ) {
+            // console.log(movieData);
+            // console.log(theatreHallDetail);
+            currBookings = [
+              ...currBookings,
+              {
+                id: userBookingInfoData[i]._id,
+                movie: movieData.title,
+                genre: movieData.genre,
+                duration: movieData.duration,
+                date: showTimeData.date,
+                time: showTimeData.time,
+                synopsis: movieData.synopsis,
+                theatreHallName: theatreHallDetail.name,
+                location: theatreHallDetail.location,
+                seats: userBookingInfoData[i].bookedSeat,
+              },
+            ];
+          }
+        }
+      }
+      return res.status(200).send({ bookings: currBookings });
+    } else {
+      return res.status(300).send({ message: "Unable to find bookings" });
+    }
+  } catch (err) {
+    return res
+      .status(401)
+      .send({ message: "Please Login to View Your Booking" });
+  }
+};
+const bookTicket = async (req, res) => {
+  // console.log(req.body);
+  const { bookingInfoId, showTimeId, selectedSeats, user } = req.body;
+  if (user) {
+    try {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      const showTimeData = await Showtime.findById(showTimeId);
+      const bookingInfoData = await BookingInfo.findById(bookingInfoId);
+      const userBookingInfo = new UserBookingInfo({
+        userId: user.userId,
+        showTimeId: showTimeId,
+        bookingInfoId: bookingInfoId,
+        date: new Date(),
+        time: new Date().getHours() + ":" + new Date().getMinutes(),
+        bookedSeat: [...selectedSeats],
+      });
+      if (
+        showTimeData != undefined &&
+        showTimeData != null &&
+        bookingInfoData != undefined &&
+        bookingInfoData != null
+      ) {
+        let alreadyBooked = false;
+        selectedSeats.forEach((element) => {
+          console.log(
+            bookingInfoData.bookedSeats[element.i][element.j].seatBooked
+          );
+          if (bookingInfoData.bookedSeats[element.i][element.j].seatBooked) {
+            alreadyBooked = true;
+          }
+          bookingInfoData.bookedSeats[element.i][element.j].seatBooked = true;
+          bookingInfoData.bookedSeats[element.i][element.j].bookedBy =
+            userBookingInfo._id;
+          // console.log(bookingInfoData.bookedSeats[element.i][element.j]);
+        });
+        bookingInfoData.totalBookedSeats =
+          bookingInfoData.totalBookedSeats + selectedSeats.length;
+        bookingInfoData.UserBookingInfo = [
+          ...bookingInfoData.UserBookingInfo,
+          userBookingInfo._id,
+        ];
+        // console.log(bookingInfoData);
+        // console.log(showTimeData);
+        // console.log(userBookingInfo);
+        if (alreadyBooked) {
+          return res.status(300).send({ message: "Seat is already Booked" });
+        }
+        await BookingInfo.findByIdAndUpdate(bookingInfoId, bookingInfoData);
+        await userBookingInfo.save();
+        await session.commitTransaction();
+        return res.status(200).send({ message: "The Booking is confirmed" });
+      }
+
+      // console.log(newShowtime);
+      // bookinfInfo.showTimeId = newShowtime._id;
+      // await bookinfInfo.save();
+      // console.log(bookinfInfo);
+    } catch (err) {}
+  }
+  return res.status(300).send({ message: "Unable to book Ticket" });
+};
+
+const addtheatreHall = async (req, res) => {
+  if (
+    req.body.hallname &&
+    req.body.rowseats &&
+    req.body.row &&
+    req.body.location
+  ) {
+    const theatre = new TheatreHall({
+      name: req.body.hallname,
+      seats: req.body.rowseats,
+      row: req.body.row,
+      location: req.body.location,
+      layout: req.body.layout,
+    });
+    try {
+      theatre.save();
+      return res.status(200).send({ message: "Added Successfully" });
+    } catch {
+      return res.status(300).send({ message: "Unkown error please try again" });
+    }
+  } else {
+    return res.status(300).send({ message: "Soem fields are missing" });
+  }
+};
+
+const getTheatreHall = async (req, res) => {
+  const theatrehall = await TheatreHall.find({});
+  if (theatrehall.length > 0) {
+    let tempTheatre = theatrehall.map((val) => {
+      console.log(val);
+      return {
+        id: val._id,
+        name: val.name,
+        totalSeats: val.seats * val.row,
+      };
+    });
+    return res.status(200).send(tempTheatre);
+    console.log(tempTheatre);
+  }
+  return res.status(304).send({ message: "No Theatre Halls are available" });
+};
+
 exports.addMovie = addMovie;
 exports.getMovies = getMovies;
 exports.addShowTime = addShowTime;
 exports.getShowTime = getShowTime;
+exports.addtheatreHall = addtheatreHall;
+exports.getTheatreHall = getTheatreHall;
+exports.getTodayShows = getTodayShows;
+exports.getTomorrowShows = getTomorrowShows;
+exports.getAvailablSeats = getAvailablSeats;
+exports.getBookingInfo = getBookingInfo;
+exports.bookTicket = bookTicket;
+exports.getMyBookings = getMyBookings;
