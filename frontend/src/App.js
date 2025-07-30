@@ -18,6 +18,8 @@ import ShowsAiring from "./Pages/Main Page/ShowAiring";
 import BookingPage from "./Pages/BookingPage/BookingPage";
 import BookShow from "./Pages/BookingPage/BookShow";
 import TicketBooked from "./Pages/BookingPage/TicketBooked";
+import AdminDashboard from "./Pages/Admin/AdminHome";
+import MovieDetails from "./Pages/User/MovieDetails";
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   return (
@@ -48,7 +50,25 @@ function App() {
                 }
               >
                 <Route
-                  path="shows"
+                  path="admin-home"
+                  element={
+                    <AdminDashboard
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="moviedetails"
+                  element={
+                    <MovieDetails
+                      isLoading={isLoading}
+                      setIsLoading={setIsLoading}
+                    />
+                  }
+                />
+                <Route
+                  path=""
                   element={
                     <ShowsAiring
                       isLoading={isLoading}

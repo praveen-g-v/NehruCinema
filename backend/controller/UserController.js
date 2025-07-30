@@ -72,7 +72,7 @@ const login = async (req, res) => {
 };
 const hasLogged = (req, res, next) => {
   const cookies = req.cookies;
-  // console.log("Cookies:  ", cookies);
+  console.log("Cookies:  ", cookies);
   if (!cookies) {
     return res.status(401).json({
       message: "Unauthorized",

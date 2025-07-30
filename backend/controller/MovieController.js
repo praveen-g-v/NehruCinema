@@ -1,4 +1,4 @@
-const AWS = require("aws-sdk");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const multer = require("multer");
 const Movie = require("../model/movieModel");
 const Showtime = require("../model/ShowTimeModel");
@@ -53,42 +53,98 @@ const addMovie = async (req, res) => {
   };
   const file = req.file; // Access the file object from Multer
   console.log(req.body);
-  AWS.config.update({
-    accessKeyId: process.env.accessKeyId,
-    secretAccessKey: process.env.secretAccessKey,
-  });
-  const s3 = new AWS.S3();
-  if (!file) {
-    return res.status(400).json({ message: "No image uploaded!" });
-  }
-  console.log(file.buffer);
 
-  const params = {
-    Bucket: "ncimage", // Replace with your bucket name
-    Key: file.filename || `image-${Date.now()}`, // Or generate a unique filename
-    Body: file.buffer, // Ensure you're using the correct property for the image data
-    ContentType: file.mimetype,
-  };
+  // const uploadFileToS3 = async (req, res) => {
+  //   const file = req.file; // Access the file object from Multer
+  //   console.log(req.body);
+
+  //   if (!file) {
+  //     return res.status(400).json({ message: "No image uploaded!" });
+  //   }
+
+  //   // Initialize S3 client with credentials in constructor
+
+  //   } catch (err) {
+  //     console.error("Error uploading file:", err);
+  //     return res.status(500).json({ message: "Error uploading file", error: err });
+  //   }
+  // };
+
+  // const s3 = new S3Client({ region: "ap-south-1" });
+  // AWS.config.update({
+  //   accessKeyId: process.env.accessKeyId,
+  //   secretAccessKey: process.env.secretAccessKey,
+  // });
+  // const s3 = new AWS.S3();
+  // if (!file) {
+  //   return res.status(400).json({ message: "No image uploaded!" });
+  // }
+  // console.log(file.buffer);
+
+  // const params = {
+  //   Bucket: "ncimage", // Replace with your bucket name
+  //   Key: file.filename || `image-${Date.now()}`, // Or generate a unique filename
+  //   Body: file.buffer, // Ensure you're using the correct property for the image data
+  //   ContentType: file.mimetype,
+  // };
 
   try {
-    const uploadResult = await s3.upload(params).promise();
-    const imageUrl = uploadResult.Location;
-    const newCrew = req.body.crew.split(",");
-    const newCast = req.body.cast.split(","); // Get the uploaded image URL
-    if (imageUrl) {
-      const newMovie = new Movie({
-        title: req.body.title,
-        genre: req.body.genre,
-        duration: req.body.duration,
-        synopsis: req.body.synopsis,
-        cast: newCast,
-        crew: newCrew,
-        poster: imageUrl,
+    const s3 = new S3Client({
+      region: "ap-south-1",
+      credentials: {
+        accessKeyId: process.env.accessKeyId,
+        secretAccessKey: process.env.secretAccessKey,
+      },
+    });
+
+    const params = {
+      Bucket: "ncimage", // Replace with your bucket name
+      Key: file.originalname || `image-${Date.now()}`, // Use originalname instead of filename
+      Body: file.buffer,
+      ContentType: file.mimetype,
+    };
+
+    try {
+      const updateData = async () => {
+        const newMovie = new Movie({
+          title: req.body.title,
+          genre: req.body.genre,
+          duration: req.body.duration,
+          synopsis: req.body.synopsis,
+          cast: newCast,
+          crew: newCrew,
+          poster: imageUrl,
+        });
+        await newMovie
+          .save()
+          .then(() => {
+            console.log("Movie added successfully");
+            return true;
+          })
+          .catch((err) => {
+            console.error("Error saving movie:", err);
+            return false;
+          });
+      };
+      // Upload file using the new v3 command pattern
+      const command = new PutObjectCommand(params);
+      await s3.send(command).then(() => {
+        const imageUrl = `https://${params.Bucket}.s3.amazonaws.com/${params.Key}`;
+        const newCrew = req.body.crew.split(",");
+        const newCast = req.body.cast.split(","); // Get the uploaded image URL
+        if (imageUrl) {
+          if (updateData()) {
+            return res.send({ message: "Successfully Added" });
+          }
+        }
+        res.json({ message: "Image uploaded successfully!", url: imageUrl });
       });
-      await newMovie.save();
-      return res.send({ message: "Successfully Added" });
+    } catch (uploadError) {
+      console.error("Error uploading to S3:", uploadError);
+      return res
+        .status(500)
+        .json({ message: "Error uploading to S3", error: uploadError });
     }
-    res.json({ message: "Image uploaded successfully!", url: imageUrl });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Upload failed!" });
@@ -134,7 +190,7 @@ const getTomorrowShows = async (req, res) => {
         if (
           currDate.getFullYear() === movieDate.getFullYear() &&
           currDate.getMonth() === movieDate.getMonth() &&
-          currDate.getDate() === movieDate.getDate()
+          currDate.getDate() + 1 === movieDate.getDate()
         ) {
           movieData.forEach((element) => {
             // console.log(element._id === val.movieId);
@@ -249,11 +305,29 @@ const addShowTime = async (req, res) => {
         if (availableSeats > 0) {
           let currentDate = new Date();
           let showDate = new Date(date);
-          if (currentDate >= showDate) {
+          if (
+            showDate.getFullYear() >= currentDate.getFullYear() ||
+            showDate.getMonth() >= currentDate.getMonth() ||
+            showDate.getDate() >= currentDate.getDate()
+          ) {
           } else {
-            return res
-              .status(304)
-              .send({ message: "Show time cannot be past dates" });
+            if (
+              checkTime[0] < currentDate.getHours() &&
+              showDate.getDate() === currentDate.getDate()
+            ) {
+              if (
+                checkTime[1] < currentDate.getMinutes() &&
+                showDate.getDate() === currentDate.getDate()
+              ) {
+                return res
+                  .status(304)
+                  .send({ message: "Show time cannot be past dates" });
+              }
+            } else {
+              return res
+                .status(304)
+                .send({ message: "Show time cannot be past dates" });
+            }
           }
         } else {
           return res.status(304).send({

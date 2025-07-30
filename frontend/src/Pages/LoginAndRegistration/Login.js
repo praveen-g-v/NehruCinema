@@ -6,6 +6,7 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import axios from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../hooks/Loader";
+import useAuth from "../../hooks/useAuth";
 function ThemeToggle() {
   const { theme, toggleTheme } = useContext(ThemeContext); // Access theme if using Context
 
@@ -18,6 +19,7 @@ function ThemeToggle() {
 function Login({ isLoading, setIsLoading }) {
   // const { theme } = useContext(ThemeContext);
   // const axios = useAxiosPrivate();
+  const { setAuth } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,25 +32,29 @@ function Login({ isLoading, setIsLoading }) {
     setIsLoading(true);
     e.preventDefault();
     try {
-      const res = await axios.get("/login", {
-        params: {
-          email,
-          password,
-        },
-      });
-      if (res.status == 200) {
-        setIsLoading(false);
-        navigate(-1);
-      }
-      // if(res.status==)
-      console.log(res);
+      await axios
+        .get("/login", {
+          params: {
+            email,
+            password,
+          },
+        })
+        .then((res) => {
+          if (res.status == 200) {
+            setAuth(res.data.token);
+            sessionStorage.setItem("token", res.data.token);
+            navigate("/");
+          }
+          setIsLoading(false);
+          console.log(res);
+        });
     } catch (err) {
-      if (err.response.status === 401) {
-        alert(err.response.data.message);
-        setEmail("");
-        setPassword("");
-        setIsLoading(false);
-      }
+      // if (err.response.status === 401) {
+      alert(err?.response?.message || "Login failed!");
+      setEmail("");
+      setPassword("");
+      // }
+      setIsLoading(false);
 
       console.log(err);
     }

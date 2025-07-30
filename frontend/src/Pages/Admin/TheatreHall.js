@@ -374,7 +374,7 @@ const TheatreHall = () => {
                 style={{ transform: `translate(${item.x}px, ${item.y}px)` }}
                 className="border-2 max-w-0 border-blue-700"
               >
-               
+
                 {item.i}
               </div>
             );
@@ -386,3 +386,339 @@ const TheatreHall = () => {
 };
 
 export default TheatreHall;
+
+// import React, { useState, useCallback } from "react";
+// import axios from "../../api/axios";
+// import { showToast } from "../../utils/toast";
+
+// const TheatreHall = () => {
+//   const ALPHABETS = [
+//     "A",
+//     "B",
+//     "C",
+//     "D",
+//     "E",
+//     "F",
+//     "G",
+//     "H",
+//     "I",
+//     "J",
+//     "K",
+//     "L",
+//     "M",
+//     "N",
+//     "O",
+//     "P",
+//     "Q",
+//     "R",
+//     "S",
+//     "T",
+//     "U",
+//     "V",
+//     "W",
+//     "X",
+//     "Y",
+//     "Z",
+//   ];
+
+//   const [theatreHallName, setTheatreHallName] = useState("");
+//   const [hallRow, setHallRow] = useState(0);
+//   const [hallRowSeats, setHallRowSeats] = useState(0);
+//   const [newLayout, setNewLayout] = useState(null);
+//   const [location, setLocation] = useState("");
+//   const [showPreview, setShowPreview] = useState(false);
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [error, setError] = useState("");
+
+//   const generateIdArray = useCallback((rows, cols) => {
+//     return Array.from({ length: rows }, (_, i) =>
+//       Array.from({ length: cols }, (_, j) => ({
+//         id: `${ALPHABETS[i]}${j}`,
+//         attribute: "seats",
+//         i,
+//         j,
+//         alphabet: ALPHABETS[i],
+//       }))
+//     );
+//   }, []);
+
+//   const generateLayout = useCallback(
+//     (row, col) => ({
+//       col,
+//       row,
+//       layout: generateIdArray(row, col),
+//     }),
+//     [generateIdArray]
+//   );
+
+//   const submitNewHall = async () => {
+//     setError("");
+
+//     if (!theatreHallName) {
+//       showToast.error("Please enter hall name");
+//       return;
+//     }
+
+//     if (hallRow <= 0) {
+//       showToast.error("Hall rows cannot be zero or less than zero");
+//       return;
+//     }
+
+//     if (hallRowSeats <= 0) {
+//       showToast.error("Hall row seats cannot be zero or less than zero");
+//       return;
+//     }
+
+//     if (hallRow > 25) {
+//       showToast.error("Hall row cannot be greater than 25 rows");
+//       return;
+//     }
+
+//     if (
+//       !window.confirm(
+//         "You won't be able to edit these details after submission"
+//       )
+//     ) {
+//       return;
+//     }
+
+//     setIsSubmitting(true);
+
+//     try {
+//       const resp = await axios.post("/movie/addtheatrehall", {
+//         hallname: theatreHallName,
+//         row: hallRow,
+//         rowseats: hallRowSeats,
+//         location: location,
+//         layout: newLayout.layout,
+//       });
+
+//       if (resp.status === 200) {
+//         showToast.success("Hall has been created successfully");
+//         // Reset form
+//         setTheatreHallName("");
+//         setLocation("");
+//         setHallRow(0);
+//         setHallRowSeats(0);
+//         setNewLayout(null);
+//         setShowPreview(false);
+//       }
+//     } catch (err) {
+//       showToast.error("Failed to create hall. Please try again.");
+//       console.error("Error creating hall:", err);
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   const changeAttribute = (i, j) => {
+//     setNewLayout((prev) => {
+//       const updatedLayout = JSON.parse(JSON.stringify(prev));
+//       updatedLayout.layout[i][j].attribute =
+//         updatedLayout.layout[i][j].attribute === "seats" ? "empty" : "seats";
+//       return updatedLayout;
+//     });
+//   };
+
+//   const handleSubmitNewHall = (e) => {
+//     e.preventDefault();
+//     const formData = new FormData(e.target);
+//     const hallname = formData.get("name");
+//     const loc = formData.get("location");
+//     const row = parseInt(formData.get("rows"));
+//     const rowseats = parseInt(formData.get("seatsPerRow"));
+
+//     setNewLayout(generateLayout(row, rowseats));
+//     setTheatreHallName(hallname);
+//     setLocation(loc);
+//     setHallRow(row);
+//     setHallRowSeats(rowseats);
+//   };
+
+//   return (
+//     <div className="container mx-auto p-4 mt-8 mb-16 max-w-4xl">
+//       <h2 className="text-2xl font-bold text-gray-800 mb-6">
+//         Add New Theatre Hall
+//       </h2>
+
+//       {error && (
+//         <div className="mb-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
+//           <p>{error}</p>
+//         </div>
+//       )}
+
+//       <form
+//         onSubmit={handleSubmitNewHall}
+//         className="bg-white p-6 rounded-lg shadow-md"
+//       >
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+//           <div>
+//             <label
+//               htmlFor="name"
+//               className="block text-sm font-medium text-gray-700 mb-1"
+//             >
+//               Hall Name
+//             </label>
+//             <input
+//               type="text"
+//               id="name"
+//               name="name"
+//               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//               required
+//               value={theatreHallName}
+//               onChange={(e) => setTheatreHallName(e.target.value)}
+//             />
+//           </div>
+
+//           <div>
+//             <label
+//               htmlFor="location"
+//               className="block text-sm font-medium text-gray-700 mb-1"
+//             >
+//               Location
+//             </label>
+//             <input
+//               type="text"
+//               id="location"
+//               name="location"
+//               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//               required
+//               value={location}
+//               onChange={(e) => setLocation(e.target.value)}
+//             />
+//           </div>
+
+//           <div>
+//             <label
+//               htmlFor="rows"
+//               className="block text-sm font-medium text-gray-700 mb-1"
+//             >
+//               Number of Rows (Max 25)
+//             </label>
+//             <input
+//               type="number"
+//               id="rows"
+//               name="rows"
+//               min="1"
+//               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//               required
+//             />
+//           </div>
+
+//           <div>
+//             <label
+//               htmlFor="seatsPerRow"
+//               className="block text-sm font-medium text-gray-700 mb-1"
+//             >
+//               Seats per Row max 25
+//             </label>
+//             <input
+//               type="number"
+//               id="seatsPerRow"
+//               name="seatsPerRow"
+//               min="1"
+//               max="25"
+//               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+//               required
+//             />
+//           </div>
+//         </div>
+
+//         <button
+//           type="submit"
+//           className="w-full md:w-auto px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+//         >
+//           Generate Hall Layout
+//         </button>
+//       </form>
+
+//       {newLayout?.layout && (
+//         <div className="mt-8">
+//           <h3 className="text-lg font-semibold text-gray-700 mb-4">
+//             Seat Layout Editor
+//           </h3>
+//           <p className="text-sm text-gray-500 mb-4">
+//             Click on seats to toggle them between available (visible) and
+//             unavailable (hidden)
+//           </p>
+
+//           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+//             <div className="flex flex-col items-center">
+//               {newLayout.layout.map((row, rowIndex) => (
+//                 <div key={`row-${rowIndex}`} className="flex flex-row mb-1">
+//                   {row.map((seat) => (
+//                     <button
+//                       key={seat.id}
+//                       onClick={() => changeAttribute(seat.i, seat.j)}
+//                       className={`w-8 h-8 mx-1 rounded-sm flex items-center justify-center transition-colors ${
+//                         seat.attribute === "seats"
+//                           ? "bg-blue-500 hover:bg-blue-600 text-white"
+//                           : "bg-gray-200 hover:bg-gray-300 text-transparent"
+//                       }`}
+//                       aria-label={`Seat ${seat.alphabet}${seat.j}`}
+//                     >
+//                       •
+//                     </button>
+//                   ))}
+//                 </div>
+//               ))}
+//             </div>
+
+//             <div className="mt-6 flex flex-wrap gap-3">
+//               <button
+//                 onClick={() => setShowPreview(!showPreview)}
+//                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+//               >
+//                 {showPreview ? "Hide Preview" : "Show Preview"}
+//               </button>
+
+//               <button
+//                 onClick={submitNewHall}
+//                 disabled={isSubmitting}
+//                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
+//               >
+//                 {isSubmitting ? "Submitting..." : "Submit Hall"}
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {showPreview && newLayout?.layout && (
+//         <div className="mt-8 border-2 border-gray-300 rounded-lg p-4 bg-gray-100 ">
+//           <div className="w-full bg-gray-800 text-white text-center py-3 mb-6 rounded-md font-medium">
+//             Screen
+//           </div>
+
+//           <div className="flex flex-col items-center ">
+//             {newLayout.layout.map((row, rowIndex) => (
+//               <div
+//                 key={`preview-row-${rowIndex}`}
+//                 className="flex flex-row mb-2 justify-center"
+//               >
+//                 {row.map((seat) => (
+//                   <div
+//                     key={`preview-${seat.id}`}
+//                     className={`w-10 h-10 mx-1 rounded-md flex items-center justify-center ${
+//                       seat.attribute === "seats"
+//                         ? "bg-gray-300 border border-gray-400"
+//                         : "invisible"
+//                     }`}
+//                   >
+//                     <span className="text-xs font-medium">
+//                       {seat.attribute === "seats"
+//                         ? `${seat.alphabet}${seat.j + 1}`
+//                         : ""}
+//                     </span>
+//                   </div>
+//                 ))}
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default TheatreHall;

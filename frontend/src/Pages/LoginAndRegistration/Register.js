@@ -18,17 +18,25 @@ const Register = () => {
       return false;
     }
   };
+
   const submit = async (e) => {
     e.preventDefault();
     console.log("Submitted");
     if (validateForm()) {
-      const resp = await axios.post("/register", {
-        name: name,
-        password: password,
-        email: email,
-        mobileNo: phoneNo,
-      });
-      console.log(resp);
+      await axios
+        .post("/register", {
+          name: name,
+          password: password,
+          email: email,
+          mobileNo: phoneNo,
+        })
+        .then((resp) => {
+          console.log(resp.status);
+          window.location.href = "/login";
+        })
+        .catch((err) => {
+          console.error("Error:", err.response?.data || err.message);
+        });
     }
     // window.location.reload();
     // e.preventDefault();
