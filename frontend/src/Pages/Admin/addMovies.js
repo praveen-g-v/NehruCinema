@@ -113,7 +113,7 @@ const AddMovie = ({ isLoading, setIsLoading }) => {
       data.append("ageRestriction", formData.ageRestriction);
       data.append("trailer", youtubeId);
 
-      const res = await axios.post("/movie", data, {
+      const res = await axios.post("/addmovie", data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
