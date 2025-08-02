@@ -105,15 +105,15 @@ const addMovie = async (req, res) => {
     };
 
     try {
-      const updateData = async () => {
+      const updateData = async (new_Cast,new_Crew,image_Url) => {
         const newMovie = new Movie({
           title: req.body.title,
           genre: req.body.genre,
           duration: req.body.duration,
           synopsis: req.body.synopsis,
-          cast: newCast,
-          crew: newCrew,
-          poster: imageUrl,
+          cast: new_Cast,
+          crew: new_Crew,
+          poster: image_Url,
         });
         await newMovie
           .save()
@@ -133,7 +133,7 @@ const addMovie = async (req, res) => {
         const newCrew = req.body.crew.split(",");
         const newCast = req.body.cast.split(","); // Get the uploaded image URL
         if (imageUrl) {
-          if (updateData()) {
+          if (updateData(newCast,newCrew,imageUrl)) {
             return res.send({ message: "Successfully Added" });
           }
         }
